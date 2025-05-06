@@ -64,7 +64,7 @@ class Controller:
         key_rows = []
         for k, v in keys.items():
             if len(v) == 1:
-                value_display = _format_value(k, v["value"])
+                value_display = format_value(k, v["value"])
             else:
                 if "prefix_len" in v:
                     value_display = f"{v['value']}/{v['prefix_len']}"
