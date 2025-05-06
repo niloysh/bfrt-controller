@@ -13,7 +13,7 @@ NOTE:
 
 import logging
 from bfrt_controller.controller import Controller
-from bfrt_grpc.client import BfruntimeReadWriteRpcException
+from bfrt_controller.bfrt_grpc.client import BfruntimeReadWriteRpcException
 
 def setup_ports(c: Controller):
     logging.info("Setting up ports")
