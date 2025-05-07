@@ -12,14 +12,14 @@ from .logger import log
 from .utils import is_valid_ip, format_value
 
 class Controller:
-    def __init__(self, bfrt_ip="localhost", bfrt_port="50052"):
+    def __init__(self, bfrt_ip="localhost", bfrt_port="50052", pipe_id=0xFFFF):
         self.log = log
         self.bfrt_ip = bfrt_ip
         self.bfrt_port = bfrt_port
         self.device_id = 0
         self.interface = gc.ClientInterface(f"{self.bfrt_ip}:{self.bfrt_port}", client_id=0, device_id=0)
         self.bfrt_info = self.interface.bfrt_info_get()
-        self.target = gc.Target(self.device_id, pipe_id=0xFFFF)
+        self.target = gc.Target(self.device_id, pipe_id=pipe_id)
         self.p4_name = self.bfrt_info.p4_name_get()
         self.log.info(f"Connected to {self.p4_name}")
         self.interface.bind_pipeline_config(self.p4_name)
