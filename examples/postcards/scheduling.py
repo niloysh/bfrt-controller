@@ -7,6 +7,7 @@ Run: python3 scheduling_grpc.py
 """
 
 import sys
+import json
 sys.path.append("/home/n6saha/bfrt_controller")
 
 import os
@@ -30,38 +31,49 @@ DEV_PORTS = [16]
 # QFI 5: 2347.47 Mbps
 # QFI 9: 1135.07 Mbps
 
-QID_CFG = {
-    # QFI 1 - real-time gaming (e.g, Battlegrounds)
-    0: {
-        "max_priority": 7,  # highest priority
-        "min_rate": 150000,  # 150 Mbps guaranteed
-        "max_rate": 1000000  # 1Gbps cap
-    },
-    # QFI 2 - Cloud gaming
-    1: {
-        "max_priority": 5, # 2nd highest priority
-        "min_rate": 1000000,  # 1Gbps guaranteed (720p/1080p streams)
-        "max_rate": 2000000  # 2Gbps cap
-    },    
-    # QFI 3 - Video conferencing
-    2: {
-        "max_priority": 3, # mid priority
-        "min_rate": 500000,  # 500 Mbps guaranteed
-        "max_rate": 1000000  # 1Gbps cap
-    },
-    # QFI 5 - Streaming
-    3: {
-        "max_priority": 2, # low priority
-        "min_rate": 1000000,  # 1 Gbps guaranteed  
-        "max_rate": 3500000  # 3.5 Gbps cap (e.g., 4K streams)
-    }, 
-    # QFI 9 - Best effort
-    4: {
-        "max_priority": 1,  # lowest priority
-        "min_rate": None,    # No guarantee
-        "max_rate": 1500000   # 1.5 Gbps cap
+# Total cap: 0.3 + 1 + 0.5 + 3 + 1.5 = 6.3
+
+# Load QID_CFG from JSON if CONFIG_FILE is set
+if os.getenv("CONFIG_FILE") and os.path.isfile(os.getenv("CONFIG_FILE")):
+    with open(os.getenv("CONFIG_FILE")) as f:
+        QID_CFG = {int(k): v for k, v in json.load(f).items()}
+    logging.info(f"Loaded QID_CFG from {os.getenv('CONFIG_FILE')}")
+else:
+    logging.info("Using hardcoded QID_CFG")
+    QID_CFG = {
+        # QFI 1 - real-time gaming (e.g, Battlegrounds)
+        0: {
+            "max_priority": 7,  # highest priority
+            "min_rate": 800000,  # 800 Mbps guaranteed
+            "max_rate": None  # No cap
         },
-}
+        # QFI 2 - Cloud gaming
+        1: {
+            "max_priority": 5, # 2nd highest priority
+            "min_rate": 2000000,  # 2Gbps guaranteed (720p/1080p streams)
+            "max_rate": 7000000  # 7Gbps cap
+        },    
+        # QFI 3 - Video conferencing
+        2: {
+            "max_priority": 3, # mid priority
+            "min_rate": 750000,  # No guarantee  1 Gbps 
+            "max_rate": 4000000  # 4 Gbps cap
+        },
+        # QFI 5 - Streaming
+        3: {
+            "max_priority": 2, # low priority
+            "min_rate": None,  # No guarantees
+            "max_rate": 6000000  # 6 Gbps cap (e.g., 4K streams)
+        }, 
+        # QFI 9 - Best effort
+        4: {
+            "max_priority": 1,  # lowest priority
+            "min_rate": None,    # No guarantee
+            "max_rate": 5000000   # 5 Gbps cap
+            },
+    }
+
+
 
 def apply_sched_policy(controller, dev_port, qid_cfg):
     pipe = dev_port >> 7

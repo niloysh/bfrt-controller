@@ -35,7 +35,7 @@ def configure_mirror_session(controller):
     """Install egress mirror session to export truncated postcards."""
     session_id = 1
     egress_port = 17
-    max_pkt_len = 64  # Ethernet (14) + IP (20) + UDP (8) + Postcard (22)
+    max_pkt_len = 69  # Ethernet (14) + IP (20) + UDP (8) + Postcard (27)
 
     logging.info(f"Installing mirror session (ID={session_id})")
     controller.add_mirror_entry(

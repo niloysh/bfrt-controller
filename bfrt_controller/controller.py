@@ -269,6 +269,7 @@ class Controller:
             return results
 
     def read_register(self, reg_name, index=None, pipe=0):
+        """Note: Slow if index is not passed. Use batched mode instead"""
         if not self.table_exists(reg_name):
             log.warning(f"Table {reg_name} is not setup!")
             return
@@ -292,3 +293,52 @@ class Controller:
             for idx in range(register_table.info.size):
                 results.append((idx, get_register_value_at_index(idx)))
             return results
+
+    def read_register_batched(self, reg_name, pipe=0):
+        if not self.table_exists(reg_name):
+            log.warning(f"Table {reg_name} is not setup!")
+            return []
+
+        register_table = self.bfrt_info.table_get(reg_name)
+        target = gc.Target(device_id=0, pipe_id=0xFFFF)
+
+        # Read all entries from software/hardware (adjust from_hw if needed)
+        try:
+            entries = register_table.entry_get(target, flags={"from_hw": True})
+        except Exception as e:
+            log.error(f"Failed to read register {reg_name}: {e}")
+            return []
+
+        results = []
+        for data, key in entries:
+            data_dict = data.to_dict()
+            key_dict = key.to_dict()
+
+            idx = key_dict["$REGISTER_INDEX"]["value"]
+            if reg_name + ".f1" in data_dict:
+                value = data_dict[reg_name + ".f1"][pipe]
+            else:
+                value = (
+                    data_dict[reg_name + ".first"][pipe],
+                    data_dict[reg_name + ".second"][pipe]
+                )
+            results.append((idx, value))
+
+        return results
+
+    def clear_register(self, reg_name: str):
+        """Clears all entries in the given register by deleting them."""
+        if not self.table_exists(reg_name):
+            print(f"[WARN] Register '{reg_name}' does not exist.")
+            return
+
+        register_table = self.bfrt_info.table_get(reg_name)
+        target = gc.Target(device_id=0, pipe_id=0xFFFF)
+
+        try:
+            register_table.entry_del(target)
+            print(f"[INFO] Cleared register by deleting entries: {reg_name}")
+        except Exception as e:
+            print(f"[ERROR] Failed to delete register entries for {reg_name}: {e}")
+
+

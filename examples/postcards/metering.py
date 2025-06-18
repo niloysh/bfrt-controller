@@ -21,34 +21,34 @@ from bfrt_controller.controller import Controller
 
 QFI_METER_PARAMS = {
     1: {  # QFI 1 – Competitive real-time gaming (e.g., Battlegrounds)
-        "CIR_KBPS": 1000,    # Very low committed rate (just control/predictive updates)
-        "PIR_KBPS": 1500,   # Occasional bursts (e.g., explosions, team actions)
-        "CBS_KBITS": 100,   # Short consistent bursts allowed
-        "PBS_KBITS": 200    # Slightly higher peak bursts, prevent excessive queuing, keep latency low
+        "CIR_KBPS": 5000,    # Very low committed rate (just control/predictive updates)
+        "PIR_KBPS": 7000,   # Occasional bursts (e.g., explosions, team actions)
+        "CBS_KBITS": 150,   # Short consistent bursts allowed
+        "PBS_KBITS": 500    # Slightly higher peak bursts, prevent excessive queuing, keep latency low
     },
     2: {  # QFI 2 – Cloud gaming (e.g., GeForce Now)
-        "CIR_KBPS": 3000,   # Moderate base rate to sustain 720p/1080p stream
-        "PIR_KBPS": 6000,   # Can spike with action scenes or bitrate jumps
-        "CBS_KBITS": 500,   # Tolerate regular short bursts
-        "PBS_KBITS": 1000    # Allow larger spikes
+        "CIR_KBPS": 16000,   # Moderate base rate to sustain 720p/1080p stream
+        "PIR_KBPS": 20000,   # Can spike with action scenes or bitrate jumps
+        "CBS_KBITS": 6000,   # Tolerate regular short bursts
+        "PBS_KBITS": 10000    # Allow larger spikes
     },
     3: {  # QFI 3 – Conferencing / interactive video (e.g., Zoom, Teams)
-        "CIR_KBPS": 2000,   # High committed rate — real-time requirements
-        "PIR_KBPS": 4000,   # Some headroom for quality adaptation
-        "CBS_KBITS": 150,   # Conferencing uses small, frequent packets
-        "PBS_KBITS": 300    # Limited extra buffering, reduce latency
+        "CIR_KBPS": 7000,   # High committed rate — real-time requirements
+        "PIR_KBPS": 10000,   # Some headroom for quality adaptation
+        "CBS_KBITS": 600,   # Conferencing uses small, frequent packets
+        "PBS_KBITS": 1000    # Limited extra buffering, reduce latency
     },
     5: {  # QFI 5 – Streaming (e.g., Netflix, YouTube Live)
-        "CIR_KBPS": 4000,   # Moderate baseline (buffered delivery)
-        "PIR_KBPS": 8000,   # Allows high-throughput initial buffering
-        "CBS_KBITS": 1000,   # High buffer-friendly burst capacity
-        "PBS_KBITS": 2000   # Supports fast-start or adaptive resolution shifts
+        "CIR_KBPS": 7000,   # Moderate baseline (buffered delivery)
+        "PIR_KBPS": 15000,   # Allows high-throughput initial buffering
+        "CBS_KBITS": 1500,   # High buffer-friendly burst capacity
+        "PBS_KBITS": 3000   # Supports fast-start or adaptive resolution shifts
     },
     9: {  # QFI 9 – Best-effort (web, email, social)
-        "CIR_KBPS": 2000,   # Minimal guaranteed rate
-        "PIR_KBPS": 8000,   # Allow bulk
-        "CBS_KBITS": 500,   # Modest sustained burst
-        "PBS_KBITS": 800    # Occasional heavy asset loads tolerated
+        "CIR_KBPS": 6000,   # Minimal guaranteed rate
+        "PIR_KBPS": 25000,   # Allow bulk
+        "CBS_KBITS": 2000,   # Modest sustained burst
+        "PBS_KBITS": 3000    # Occasional heavy asset loads tolerated
     }
 }
 
