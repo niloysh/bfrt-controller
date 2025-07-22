@@ -41,6 +41,7 @@ def program_ipv4_forwarding(c: Controller):
         ([("hdr.ipv4.dst_addr", "192.168.44.18")], "Ingress.Forward.send", [("port", 16)]),
         ([("hdr.ipv4.dst_addr", "192.168.44.203")], "Ingress.Forward.send", [("port", 17)]),
         ([("hdr.ipv4.dst_addr", "192.168.44.201")], "Ingress.Forward.send", [("port", 18)]),
+        ([("hdr.ipv4.dst_addr", "192.168.44.128")], "Ingress.Forward.send", [("port", 19)]),
     ]
 
     c.program_table("Ingress.Forward.ipv4_host_table", entries)
@@ -69,7 +70,7 @@ def main():
     )
 
     # Configure multicast and forwarding rules
-    configure_multicast(c, port_list=[16, 17, 18, 64, 66, 67])
+    configure_multicast(c, port_list=[16, 17, 18, 19, 64, 66, 67])
     program_ipv4_forwarding(c)
 
     c.tear_down()

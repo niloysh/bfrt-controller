@@ -1,115 +1,112 @@
 """
-Programs token bucket meters on a Tofino switch using QFI-based traffic classes.
-
-Each TEID is matched exactly in the meter table, and inherits shaping parameters
-based on its QFI. This setup uses the RFC 2697 trTCM model.
+Configure RFC 2697 trTCM meters for each (TEID, QFI) pair on Tofino.
 
 Usage:
-    python3 metering.py --map teid_qfi_map.json
+    python3 metering.py
 """
 
-import argparse
-import json
 import logging
-import os
 import sys
 
-logging.basicConfig(level=logging.INFO)
 sys.path.append("/home/n6saha/bfrt_controller")
-
 from bfrt_controller.controller import Controller
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+
+# Token bucket parameters per QFI (CIR, PIR in kbps; CBS, PBS in kbits)
 QFI_METER_PARAMS = {
-    1: {  # QFI 1 – Competitive real-time gaming (e.g., Battlegrounds)
-        "CIR_KBPS": 5000,    # Very low committed rate (just control/predictive updates)
-        "PIR_KBPS": 7000,   # Occasional bursts (e.g., explosions, team actions)
-        "CBS_KBITS": 150,   # Short consistent bursts allowed
-        "PBS_KBITS": 500    # Slightly higher peak bursts, prevent excessive queuing, keep latency low
+    9: {  # browsing.pcap
+        "CIR_KBPS": 5658,
+        "PIR_KBPS": 45448,
+        "CBS_KBITS": 737701 * 8 // 1000,  # ≈ 5901
+        "PBS_KBITS": 1106551 * 8 // 1000  # ≈ 8852
     },
-    2: {  # QFI 2 – Cloud gaming (e.g., GeForce Now)
-        "CIR_KBPS": 16000,   # Moderate base rate to sustain 720p/1080p stream
-        "PIR_KBPS": 20000,   # Can spike with action scenes or bitrate jumps
-        "CBS_KBITS": 6000,   # Tolerate regular short bursts
-        "PBS_KBITS": 10000    # Allow larger spikes
+    6: {  # file-download-http.pcap
+        "CIR_KBPS": 472836,
+        "PIR_KBPS": 825913,
+        "CBS_KBITS": 11493378 * 8 // 1000,  # ≈ 91947
+        "PBS_KBITS": 17240067 * 8 // 1000  # ≈ 137920
     },
-    3: {  # QFI 3 – Conferencing / interactive video (e.g., Zoom, Teams)
-        "CIR_KBPS": 7000,   # High committed rate — real-time requirements
-        "PIR_KBPS": 10000,   # Some headroom for quality adaptation
-        "CBS_KBITS": 600,   # Conferencing uses small, frequent packets
-        "PBS_KBITS": 1000    # Limited extra buffering, reduce latency
+    8: {  # file-sync-nextcloud.pcap
+        "CIR_KBPS": 83315,
+        "PIR_KBPS": 829756,
+        "CBS_KBITS": 12472141 * 8 // 1000,  # ≈ 99777
+        "PBS_KBITS": 18708211 * 8 // 1000  # ≈ 149665
     },
-    5: {  # QFI 5 – Streaming (e.g., Netflix, YouTube Live)
-        "CIR_KBPS": 7000,   # Moderate baseline (buffered delivery)
-        "PIR_KBPS": 15000,   # Allows high-throughput initial buffering
-        "CBS_KBITS": 1500,   # High buffer-friendly burst capacity
-        "PBS_KBITS": 3000   # Supports fast-start or adaptive resolution shifts
+    3: {  # geforce_skyrim.pcap
+        "CIR_KBPS": 28776,
+        "PIR_KBPS": 35428,
+        "CBS_KBITS": 556880 * 8 // 1000,  # ≈ 4455
+        "PBS_KBITS": 835320 * 8 // 1000   # ≈ 6682
     },
-    9: {  # QFI 9 – Best-effort (web, email, social)
-        "CIR_KBPS": 6000,   # Minimal guaranteed rate
-        "PIR_KBPS": 25000,   # Allow bulk
-        "CBS_KBITS": 2000,   # Modest sustained burst
-        "PBS_KBITS": 3000    # Occasional heavy asset loads tolerated
+    # 5: {  # flame_sensor.pcap
+    #     "CIR_KBPS": 350,
+    #     "PIR_KBPS": 656,
+    #     "CBS_KBITS": 11070 * 8 // 1000,  # ≈ 3
+    #     "PBS_KBITS": 652 * 8 // 1000   # ≈ 5
+    # },
+    5: {  # flame_sensor.pcap
+        "CIR_KBPS": 350,     # Keep average rate
+        "PIR_KBPS": 1000,    # Allow more room for short bursts
+        "CBS_KBITS": 160,    # 20 KB token bucket (up from ~88 KB)
+        "PBS_KBITS": 256     # 32 KB peak bucket (up from ~132 KB)
+    },
+    7: {  # teams.pcap
+        "CIR_KBPS": 2489,
+        "PIR_KBPS": 7253,
+        "CBS_KBITS": 197648 * 8 // 1000,  # ≈ 1581
+        "PBS_KBITS": 296472 * 8 // 1000   # ≈ 2371
+    },
+    2: {  # twitch.pcap
+        "CIR_KBPS": 6049,
+        "PIR_KBPS": 9057,
+        "CBS_KBITS": 333823 * 8 // 1000,  # ≈ 2670
+        "PBS_KBITS": 500734 * 8 // 1000   # ≈ 4005
+    },
+    1: {  # voip.pcap
+        "CIR_KBPS": 375,
+        "PIR_KBPS": 48018,
+        "CBS_KBITS": 5661267 * 8 // 1000,  # ≈ 45290
+        "PBS_KBITS": 8491900 * 8 // 1000   # ≈ 67935
+    },
+    4: {  # youtube.pcap
+        "CIR_KBPS": 1861,
+        "PIR_KBPS": 47602,
+        "CBS_KBITS": 5047277 * 8 // 1000,  # ≈ 40378
+        "PBS_KBITS": 7570915 * 8 // 1000   # ≈ 60567
     }
 }
 
-
-def parse_args():
-    parser = argparse.ArgumentParser(description="Configure QoS meters based on QFI mapping.")
-    parser.add_argument("--teid-map", required=True, help="Path to TEID-to-QFI JSON mapping file")
-    return parser.parse_args()
-
-
-def load_teid_qfi_map(path):
-    """Load and parse the TEID→QFI map from JSON."""
-    if not os.path.exists(path):
-        logging.error(f"Mapping file not found: {path}")
-        sys.exit(1)
-    try:
-        with open(path) as f:
-            return json.load(f)
-    except json.JSONDecodeError as e:
-        logging.error(f"Invalid JSON format in {path}: {e}")
-        sys.exit(1)
-
-
-def build_meter_entries(teid_map):
-    """Generate meter table entries from TEID→QFI map."""
-    entries = []
-    teid_entries = teid_map["teids"] if "teids" in teid_map else teid_map
-
-    for entry in teid_entries:
-        teid = entry["teid"]
-        qfi = entry.get("qfi")
-        if qfi not in QFI_METER_PARAMS:
-            logging.warning(f"Skipping TEID {teid} — unknown QFI {qfi}")
-            continue
-
-        params = QFI_METER_PARAMS[qfi]
-        entries.append((
-            [("hdr.gtpu.teid", teid)],
-            "Ingress.QoSMeter.set_color",
-            [
-                ("$METER_SPEC_CIR_KBPS", params["CIR_KBPS"]),
-                ("$METER_SPEC_PIR_KBPS", params["PIR_KBPS"]),
-                ("$METER_SPEC_CBS_KBITS", params["CBS_KBITS"]),
-                ("$METER_SPEC_PBS_KBITS", params["PBS_KBITS"]),
-            ],
-        ))
-    return entries
+BASE_TEID = 0x1000  # Start TEID
+UE_COUNT = 100
+QFIS = sorted(QFI_METER_PARAMS.keys())
 
 
 def main():
-    args = parse_args()
-    teid_map = load_teid_qfi_map(args.teid_map)
-
     c = Controller()
     c.setup_tables(["Ingress.QoSMeter.meter_table"])
     c.add_annotation("Ingress.QoSMeter.meter_table", "hdr.gtpu.teid", "hex")
 
-    meter_entries = build_meter_entries(teid_map)
-    logging.info(f"Installing {len(meter_entries)} meter entries")
-    c.program_table("Ingress.QoSMeter.meter_table", meter_entries)
+    entries = []
 
+    for ue in range(UE_COUNT):
+        teid = BASE_TEID + ue
+        for qfi in QFIS:
+            params = QFI_METER_PARAMS[qfi]
+            entry = (
+                [("hdr.gtpu.teid", teid), ("hdr.gtpu_ext_psc.qfi", qfi)],
+                "Ingress.QoSMeter.set_color",
+                [
+                    ("$METER_SPEC_CIR_KBPS", params["CIR_KBPS"]),
+                    ("$METER_SPEC_PIR_KBPS", params["PIR_KBPS"]),
+                    ("$METER_SPEC_CBS_KBITS", params["CBS_KBITS"]),
+                    ("$METER_SPEC_PBS_KBITS", params["PBS_KBITS"]),
+                ]
+            )
+            entries.append(entry)
+
+    logging.info(f"Installing {len(entries)} meter entries for {UE_COUNT} UEs × {len(QFIS)} QFIs")
+    c.program_table("Ingress.QoSMeter.meter_table", entries)
     c.tear_down()
 
 

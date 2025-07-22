@@ -41,38 +41,47 @@ if os.getenv("CONFIG_FILE") and os.path.isfile(os.getenv("CONFIG_FILE")):
 else:
     logging.info("Using hardcoded QID_CFG")
     QID_CFG = {
-        # QFI 1 - real-time gaming (e.g, Battlegrounds)
-        0: {
-            "max_priority": 7,  # highest priority
-            "min_rate": 800000,  # 800 Mbps guaranteed
-            "max_rate": None  # No cap
+        0: {  # QFI 1 - VoIP (URLLC-style, ultra-low latency)
+            "max_priority": 7,
+            "min_rate": 500_000,
+            "max_rate": 1_000_000,
         },
-        # QFI 2 - Cloud gaming
-        1: {
-            "max_priority": 5, # 2nd highest priority
-            "min_rate": 2000000,  # 2Gbps guaranteed (720p/1080p streams)
-            "max_rate": 7000000  # 7Gbps cap
-        },    
-        # QFI 3 - Video conferencing
-        2: {
-            "max_priority": 3, # mid priority
-            "min_rate": 750000,  # No guarantee  1 Gbps 
-            "max_rate": 4000000  # 4 Gbps cap
+        1: {  # QFI 5 - IoT telemetry (moderate latency)
+            "max_priority": 6,
+            "min_rate": 400_000,
+            "max_rate": 1_000_000,
         },
-        # QFI 5 - Streaming
-        3: {
-            "max_priority": 2, # low priority
-            "min_rate": None,  # No guarantees
-            "max_rate": 6000000  # 6 Gbps cap (e.g., 4K streams)
-        }, 
-        # QFI 9 - Best effort
-        4: {
-            "max_priority": 1,  # lowest priority
-            "min_rate": None,    # No guarantee
-            "max_rate": 5000000   # 5 Gbps cap
-            },
+        2: {  # QFI 3 - Cloud gaming (interactive real-time)
+            "max_priority": 5,
+            "min_rate": 2_000_000,
+            "max_rate": 6_000_000,
+        },
+        3: {  # QFI 7 - Video call (Zoom, Meets)
+            "max_priority": 4,
+            "min_rate": 1_000_000,
+            "max_rate": 4_000_000,
+        },
+        4: {  # QFI 4 - YouTube (buffered)
+            "max_priority": 3,
+            "min_rate": 500_000,
+            "max_rate": 5_000_000,
+        },
+        5: {  # QFI 2 - Twitch (live stream)
+            "max_priority": 3,
+            "min_rate": 500_000,
+            "max_rate": 5_000_000,
+        },
+        6: {  # QFI 6 - File downloads
+            "max_priority": 2,
+            "min_rate": None,
+            "max_rate": 8_000_000,
+        },
+        7: {  # QFI 9/8 - Browsing, sync (best-effort)
+            "max_priority": 1,
+            "min_rate": None,
+            "max_rate": 5_000_000,
+        },
     }
-
 
 
 def apply_sched_policy(controller, dev_port, qid_cfg):

@@ -2,7 +2,7 @@
 Configure QFI-to-Queue mapping in the Tofino pipeline.
 
 This script programs `Ingress.QueueMapper.qfi_to_queue_table` with QFI-to-QID mappings
-based on service class assumptions or an externally provided config.
+based on application classes or an external config.
 
 Usage:
     # Use default mapping
@@ -25,12 +25,18 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s"
 )
 
+# Default QFI → QID mapping for Tofino 8-queue scheduler
+# Queue 7 is reserved for best-effort (browsing, sync)
 DEFAULT_MAPPING = {
-    1: 0,  # URLLC
-    2: 1,  # Cloud Gaming
-    3: 2,  # Video Conferencing
-    5: 3,  # Streaming
-    # Others fall through to default_action → qid = 4
+    1: 0,  # VoIP (5QI 1) – URLLC-style, ultra-low latency
+    5: 1,  # IoT/MQTT (5QI 75) – low latency telemetry
+    3: 2,  # Cloud gaming (5QI 3) – interactive real-time
+    7: 3,  # Video call (5QI 65) – less sensitive than VoIP
+    4: 4,  # YouTube (5QI 2) – buffered video
+    2: 5,  # Twitch (5QI 2) – live stream
+    6: 6,  # File download (5QI 6) – throughput heavy
+    9: 7,  # Browsing (5QI 9) – best-effort
+    8: 7,  # File sync (5QI 6) – background sync (best-effort)
 }
 
 
