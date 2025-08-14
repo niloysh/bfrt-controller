@@ -21,6 +21,7 @@ def setup_ports(c: Controller):
         (14, 0, 10, "none", "disable"),
         (14, 1, 10, "none", "disable"),
         (14, 2, 10, "none", "disable"),
+        (14, 3, 10, "none", "disable"),
         (33, 0, 10, "none", "disable"),
         (33, 2, 10, "none", "enable"),
         (33, 3, 10, "none", "enable"),

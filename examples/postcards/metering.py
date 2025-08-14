@@ -15,70 +15,64 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 
 # Token bucket parameters per QFI (CIR, PIR in kbps; CBS, PBS in kbits)
 QFI_METER_PARAMS = {
-    9: {  # browsing.pcap
-        "CIR_KBPS": 5658,
-        "PIR_KBPS": 45448,
-        "CBS_KBITS": 737701 * 8 // 1000,  # ≈ 5901
-        "PBS_KBITS": 1106551 * 8 // 1000  # ≈ 8852
+    1: {  # URLLC (QID0)
+        "CIR_KBPS": 20_000,
+        "PIR_KBPS": 100_000,      
+        "CBS_KBITS": 120,        
+        "PBS_KBITS": 360         
     },
-    6: {  # file-download-http.pcap
-        "CIR_KBPS": 472836,
-        "PIR_KBPS": 825913,
-        "CBS_KBITS": 11493378 * 8 // 1000,  # ≈ 91947
-        "PBS_KBITS": 17240067 * 8 // 1000  # ≈ 137920
+    5: {  # IoT (QID1)
+        "CIR_KBPS": 20_000,
+        "PIR_KBPS": 100_000,     
+        "CBS_KBITS": 480,   
+        "PBS_KBITS": 1440,   
     },
-    8: {  # file-sync-nextcloud.pcap
-        "CIR_KBPS": 83315,
-        "PIR_KBPS": 829756,
-        "CBS_KBITS": 12472141 * 8 // 1000,  # ≈ 99777
-        "PBS_KBITS": 18708211 * 8 // 1000  # ≈ 149665
+    3: {  # Gaming (QID2)
+        "CIR_KBPS": 70_000,
+        "PIR_KBPS": 800_000, 
+        "CBS_KBITS": 480,  
+        "PBS_KBITS": 1500 
     },
-    3: {  # geforce_skyrim.pcap
-        "CIR_KBPS": 28776,
-        "PIR_KBPS": 35428,
-        "CBS_KBITS": 556880 * 8 // 1000,  # ≈ 4455
-        "PBS_KBITS": 835320 * 8 // 1000   # ≈ 6682
+    7: {  # Video call (QID3)
+        "CIR_KBPS": 50_000,
+        "PIR_KBPS": 100_000,
+        "CBS_KBITS": 180,  
+        "PBS_KBITS": 540,
     },
-    # 5: {  # flame_sensor.pcap
-    #     "CIR_KBPS": 350,
-    #     "PIR_KBPS": 656,
-    #     "CBS_KBITS": 11070 * 8 // 1000,  # ≈ 3
-    #     "PBS_KBITS": 652 * 8 // 1000   # ≈ 5
-    # },
-    5: {  # flame_sensor.pcap
-        "CIR_KBPS": 350,     # Keep average rate
-        "PIR_KBPS": 1000,    # Allow more room for short bursts
-        "CBS_KBITS": 160,    # 20 KB token bucket (up from ~88 KB)
-        "PBS_KBITS": 256     # 32 KB peak bucket (up from ~132 KB)
+    4: {  # YouTube (QID4)
+        "CIR_KBPS": 250_000,
+        "PIR_KBPS": 450_000,
+        "CBS_KBITS": 700, 
+        "PBS_KBITS": 1_440
     },
-    7: {  # teams.pcap
-        "CIR_KBPS": 2489,
-        "PIR_KBPS": 7253,
-        "CBS_KBITS": 197648 * 8 // 1000,  # ≈ 1581
-        "PBS_KBITS": 296472 * 8 // 1000   # ≈ 2371
+    2: {  # Twitch (QID5)
+        "CIR_KBPS": 150_000,
+        "PIR_KBPS": 350_000,
+        "CBS_KBITS": 850,
+        "PBS_KBITS": 2160,
     },
-    2: {  # twitch.pcap
-        "CIR_KBPS": 6049,
-        "PIR_KBPS": 9057,
-        "CBS_KBITS": 333823 * 8 // 1000,  # ≈ 2670
-        "PBS_KBITS": 500734 * 8 // 1000   # ≈ 4005
+    6: {  # Downloads (QID6)
+        "CIR_KBPS": 100_000,   
+        "PIR_KBPS": 500_000,   
+        "CBS_KBITS": 960,     
+        "PBS_KBITS": 2_880     
     },
-    1: {  # voip.pcap
-        "CIR_KBPS": 375,
-        "PIR_KBPS": 48018,
-        "CBS_KBITS": 5661267 * 8 // 1000,  # ≈ 45290
-        "PBS_KBITS": 8491900 * 8 // 1000   # ≈ 67935
+    8: {  # File sync (QID7)
+        "CIR_KBPS": 450_000,  
+        "PIR_KBPS": 800_000,
+        "CBS_KBITS": 1500,
+        "PBS_KBITS": 2500
     },
-    4: {  # youtube.pcap
-        "CIR_KBPS": 1861,
-        "PIR_KBPS": 47602,
-        "CBS_KBITS": 5047277 * 8 // 1000,  # ≈ 40378
-        "PBS_KBITS": 7570915 * 8 // 1000   # ≈ 60567
-    }
+    9: {  # Browsing (QID7)
+        "CIR_KBPS": 80_000,
+        "PIR_KBPS": 220_000,
+        "CBS_KBITS": 600,
+        "PBS_KBITS": 1800
+    },
 }
 
-BASE_TEID = 0x1000  # Start TEID
-UE_COUNT = 100
+BASE_TEID = 0x0001  # Start TEID
+UE_COUNT = 110
 QFIS = sorted(QFI_METER_PARAMS.keys())
 
 

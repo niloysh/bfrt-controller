@@ -42,6 +42,7 @@ def program_ipv4_forwarding(c: Controller):
         ([("hdr.ipv4.dst_addr", "192.168.44.203")], "Ingress.Forward.send", [("port", 17)]),
         ([("hdr.ipv4.dst_addr", "192.168.44.201")], "Ingress.Forward.send", [("port", 18)]),
         ([("hdr.ipv4.dst_addr", "192.168.44.128")], "Ingress.Forward.send", [("port", 19)]),
+        ([("hdr.ipv4.dst_addr", "192.168.44.12")], "Ingress.Forward.send", [("port", 64)]),
     ]
 
     c.program_table("Ingress.Forward.ipv4_host_table", entries)

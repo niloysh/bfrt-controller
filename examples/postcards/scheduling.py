@@ -23,15 +23,9 @@ logging.basicConfig(
 # Device ports to configure
 DEV_PORTS = [16]
 
-# QID → Scheduling configuration for 1000 TEIDs
-# Based on report from traffic generator (See https://github.com/niloysh/5g-traffic-generator)
-# QFI 1: 101.06 Mbps
-# QFI 2: 762.95 Mbps
-# QFI 3: 249.15 Mbps
-# QFI 5: 2347.47 Mbps
-# QFI 9: 1135.07 Mbps
 
-# Total cap: 0.3 + 1 + 0.5 + 3 + 1.5 = 6.3
+
+
 
 # Load QID_CFG from JSON if CONFIG_FILE is set
 if os.getenv("CONFIG_FILE") and os.path.isfile(os.getenv("CONFIG_FILE")):
@@ -41,48 +35,47 @@ if os.getenv("CONFIG_FILE") and os.path.isfile(os.getenv("CONFIG_FILE")):
 else:
     logging.info("Using hardcoded QID_CFG")
     QID_CFG = {
-        0: {  # QFI 1 - VoIP (URLLC-style, ultra-low latency)
-            "max_priority": 7,
-            "min_rate": 500_000,
-            "max_rate": 1_000_000,
-        },
-        1: {  # QFI 5 - IoT telemetry (moderate latency)
-            "max_priority": 6,
-            "min_rate": 400_000,
-            "max_rate": 1_000_000,
-        },
-        2: {  # QFI 3 - Cloud gaming (interactive real-time)
-            "max_priority": 5,
-            "min_rate": 2_000_000,
-            "max_rate": 6_000_000,
-        },
-        3: {  # QFI 7 - Video call (Zoom, Meets)
-            "max_priority": 4,
-            "min_rate": 1_000_000,
-            "max_rate": 4_000_000,
-        },
-        4: {  # QFI 4 - YouTube (buffered)
-            "max_priority": 3,
-            "min_rate": 500_000,
-            "max_rate": 5_000_000,
-        },
-        5: {  # QFI 2 - Twitch (live stream)
-            "max_priority": 3,
-            "min_rate": 500_000,
-            "max_rate": 5_000_000,
-        },
-        6: {  # QFI 6 - File downloads
-            "max_priority": 2,
-            "min_rate": None,
-            "max_rate": 8_000_000,
-        },
-        7: {  # QFI 9/8 - Browsing, sync (best-effort)
-            "max_priority": 1,
-            "min_rate": None,
-            "max_rate": 5_000_000,
-        },
+    0: {  # QFI 1 - VoIP (URLLC-style, ultra-low latency)
+        "max_priority": 7,
+        "min_rate": 15_000,
+        "max_rate": 30_000,
+    },
+    1: {  # QFI 5 - IoT telemetry (moderate latency)
+        "max_priority": 6,
+        "min_rate": 40_000,
+        "max_rate": 70_000,
+    },
+    2: {  # QFI 3 - Cloud gaming (interactive real-time)
+        "max_priority": 5,
+        "min_rate": 500_000,
+        "max_rate": 1_500_000,
+    },
+    3: {  # QFI 7 - Video call (Zoom, Meets)
+        "max_priority": 4,
+        "min_rate": 100_000,
+        "max_rate": 150_000,
+    },
+    4: {  # QFI 4 - YouTube (buffered)
+        "max_priority": 3,
+        "min_rate": 150_000,
+        "max_rate": 380_000,
+    },
+    5: {  # QFI 2 - Twitch (live stream)
+        "max_priority": 3,
+        "min_rate": 300_000,
+        "max_rate": 400_000,
+    },
+    6: {  # QFI 6 - File downloads
+        "max_priority": 2,
+        "min_rate": 150_000,
+        "max_rate": 500_000,
+    },
+    7: {  # QFI 9/8 - Browsing, sync (best-effort)
+        "max_priority": 1,
+        "min_rate": 300_000,
+        "max_rate": 900_000,
+    },
     }
-
 
 def apply_sched_policy(controller, dev_port, qid_cfg):
     pipe = dev_port >> 7

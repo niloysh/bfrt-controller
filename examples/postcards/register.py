@@ -54,7 +54,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     c = Controller()
-    register_names = ["Egress.IntStats.packet_count_register", "Egress.IntStats.byte_count_register", "Ingress.QoSMeter.drop_count_register"]
+    # register_names = ["Egress.IntStats.packet_count_register", "Egress.IntStats.byte_count_register", "Ingress.QoSMeter.drop_count_register"]
+    register_names = ["Ingress.QoSMeter.drop_count_register"]
     c.setup_tables(register_names)
 
     if args.mode == "clear":
